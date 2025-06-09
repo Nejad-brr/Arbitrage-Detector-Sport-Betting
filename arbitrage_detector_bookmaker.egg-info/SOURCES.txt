@@ -1,0 +1,14 @@
+setup.py
+Arbitrage/__init__.py
+Arbitrage/main.py
+Scrapers/__init__.py
+Scrapers/betclic_scraper.py
+Scrapers/unibet_scraper.py
+Scrapers/winamax_scraper.py
+Scrapers/zebet_scraper.py
+arbitrage_detector_bookmaker.egg-info/PKG-INFO
+arbitrage_detector_bookmaker.egg-info/SOURCES.txt
+arbitrage_detector_bookmaker.egg-info/dependency_links.txt
+arbitrage_detector_bookmaker.egg-info/entry_points.txt
+arbitrage_detector_bookmaker.egg-info/requires.txt
+arbitrage_detector_bookmaker.egg-info/top_level.txt
