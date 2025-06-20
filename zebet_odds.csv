@@ -1,8 +1,12 @@
 team1,team2,key,odd_team1_win,odd_draw,odd_team2_win,sport,competition
-Bragantino SP,Bahia Salvador,Bragantino SP v Bahia Salvador,1.92,2.95,3.45,football,d1-bresil
-Vitoria BA,Cruzeiro,Vitoria BA v Cruzeiro,3.0,2.95,2.1,football,d1-bresil
-Fortaleza CE,Santos,Fortaleza CE v Santos,1.95,2.9,3.45,football,d1-bresil
-Gremio,Corinthians,Gremio v Corinthians,2.2,2.9,2.9,football,d1-bresil
-Sao Paulo,Vasco De Gama,Sao Paulo v Vasco De Gama,1.76,3.1,3.85,football,d1-bresil
-Atletico MG,Internacional,Atletico MG v Internacional,1.74,3.15,3.9,football,d1-bresil
-IND Pacers,OKC Thunder,IND Pacers v OKC Thunder,2.75,15.0,1.48,basketball,nba
+Sassuolo,Naples,Sassuolo v Naples,5.6,3.85,1.4,football,serie-a
+Udinese,Hellas Vérone,Udinese v Hellas Vérone,1.87,3.0,3.55,football,serie-a
+Genoa,Lecce,Genoa v Lecce,1.81,3.05,3.75,football,serie-a
+Como 1907,Lazio Rome,Como 1907 v Lazio Rome,2.55,3.0,2.4,football,serie-a
+Juventus Turin,Parme,Juventus Turin v Parme,1.34,4.1,6.2,football,serie-a
+Inter Milan,Torino,Inter Milan v Torino,1.34,4.2,6.1,football,serie-a
+Cagliari,Fiorentina,Cagliari v Fiorentina,3.0,3.05,2.05,football,serie-a
+AS Rome,Bologne,AS Rome v Bologne,1.96,2.95,3.3,football,serie-a
+Milan AC,US Cremonese,Milan AC v US Cremonese,1.28,4.4,7.0,football,serie-a
+Atalanta,AC Pisa 1909,Atalanta v AC Pisa 1909,1.31,4.35,6.4,football,serie-a
+IND Pacers,OKC Thunder,IND Pacers v OKC Thunder,2.6,14.5,1.52,basketball,nba
