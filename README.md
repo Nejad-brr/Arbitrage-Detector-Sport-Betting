@@ -1,110 +1,183 @@
-# Automated Sports Betting Arbitrage Detector
+# Automated Sports Betting Arbitrage Detector (Legacy)
 
-Full‑stack Python project to:
+## Overview
 
-1. Scrape real‑time 1X2 odds from Unibet, Zébet, and Betclic
-2. Normalize & canonicalize team names across sources
-3. Detect arbitrage (“sure‑bet”) opportunities via implied probability math
-4. Orchestrate and schedule the pipeline with Dagster
+This Python project automates detection of sports betting arbitrage opportunities by:
+
+1. **Scraping** 1X2 odds from three major bookmakers (Unibet, Zébet, Betclic) using Selenium and BeautifulSoup.
+2. **Normalizing & canonicalizing** team names across sources via `unidecode`, regex, and RapidFuzz fuzzy matching.
+3. **Detecting** arbitrage by converting odds to implied probabilities, filtering profitable sums (<1), and allocating stakes for a given bankroll.
+4. **Exporting** results to CSV and printing a console summary.
+
+It supports both manual execution and fully automated scheduling (cron/launchd), with optional orchestration via Dagster and interactive Streamlit dashboards.
 
 ---
 
 ## Features
 
-* **Multi‑site Scraping**: Headless Selenium + BeautifulSoup to extract odds
-* **Data Normalization**: `unidecode`, regex, and RapidFuzz fuzzy matching
-* **Arbitrage Logic**: Pandas for implied probabilities, filtering, stake allocation
-* **Workflow Orchestration**: Dagster `ops` + `job` + `schedule` for hourly runs with retries, logs, and UI monitoring
-* **Automation Options**: Manual via `run_arbitrage.sh` or hands‑off via Dagster schedules
-* **Interactive Dashboard**: (Optional) Streamlit app for filtering, CSV download, and live view
+* **Multi‑Site Scraping**
+
+  * Headless Chrome via Selenium WebDriver and BeautifulSoup-driven parsing.
+  * Custom scraper modules (`Scrapers/*.py`) returning pandas DataFrames with uniform schema.
+
+* **Data Normalization & Team Mapping**
+
+  * `unidecode` + regex for stripping accents, punctuation, and whitespace.
+  * RapidFuzz-based fuzzy clustering to reconcile abbreviations (e.g., “OKC Thunder” vs “Oklahoma City Thunder”).
+  * Generates `team_mapping.json` for deterministic name mapping.
+
+* **Arbitrage Detection**
+
+  * Pandas pipeline: merge odds from all sites, compute implied probabilities, detect arbitrages (sum of inverses < 1).
+  * Calculates optimal stake allocation and profit percentage for a fixed bankroll.
+
+* **Automation & Orchestration**
+
+  * **Shell script**: `run_arbitrage.sh` wraps the pipeline for manual or cron-based scheduling.
+  * **Cron/launchd**: example crontab entry provided for hourly runs.
+  * **Dagster**: optional `pipeline.py` defines `ops`, `job`, and `@schedule` for UI monitoring, retries, and hourly execution.
+
+* **Interactive Dashboard (optional)**
+
+  * Streamlit application displaying live arbitrages with filtering, profit thresholds, and CSV download.
 
 ---
 
-## Repo Layout
+## Repository Structure
 
-```
+```plaintext
 Arbitrage_Detector_Bookmaker/
-├── Scrapers/                # site‑specific scraping modules
+├── Scrapers/                # Individual site scrapers
 │   ├── betclic_scraper.py   # → get_betclic_df()
 │   ├── unibet_scraper.py    # → get_unibet_df()
 │   └── zebet_scraper.py     # → get_zebet_df()
 
-├── Arbitrage/               # core arbitrage logic
-│   └── main2.py             # pipeline: load, normalize, merge, detect, export
+├── Arbitrage/               # Core arbitrage pipeline
+│   └── main2.py             # load, normalize, merge, detect, export
 
-├── build_team_map.py        # fuzzy clustering to generate team_mapping.json
-├── pipeline.py              # Dagster definitions: ops, job, schedule
-├── run_arbitrage.sh         # shell wrapper to run the full pipeline
-├── team_mapping.json        # auto‑generated normalized→canonical map
-├── requirements.txt         # project dependencies
-└── README.md                # this file
+├── build_team_map.py        # fuzzy-cluster unique names → team_mapping.json
+├── pipeline.py              # Dagster orchestration definitions
+├── run_arbitrage.sh         # shell wrapper for manual/cron execution
+├── team_mapping.json        # auto-generated name mapping
+├── requirements.txt         # pinned Python dependencies
+├── setup.py                 # package metadata (optional)
+└── README_legacy.md         # this legacy README with detailed instructions
 ```
 
 ---
 
-## Quick Start
+## Getting Started
 
-1. **Clone & Prep**
+### Prerequisites
+
+* **Python 3.12+**
+* **Google Chrome** (for Selenium headless)
+* **pip** installed in your environment
+
+### Installation
+
+1. **Clone the repository**
 
    ```bash
    git clone https://github.com/Nejad-brr/Arbitrage-Detector-Sport-Betting.git
    cd Arbitrage-Detector-Sport-Betting
-   python3 -m venv .venv && source .venv/bin/activate
+   ```
+2. **Create & activate a virtual environment**
+
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+3. **Install dependencies**
+
+   ```bash
    pip install -r requirements.txt
    ```
 
-2. **Generate Team Map**
+---
 
-   ```bash
-   python build_team_map.py
-   ```
+## Usage
 
-   This reads `*_odds.csv` and writes `team_mapping.json`.
+### 1) Manual Pipeline
 
-3. **Run Detection**
+```bash
+# Generate team mapping (first run scrapers to create CSVs):
+python build_team_map.py
 
-   ```bash
-   python -m Arbitrage.main2
-   ```
+# Detect arbitrage and export CSV:
+python -m Arbitrage.main2
+```
 
-   Outputs `arbitrage_opportunities.csv` and console summary.
+Outputs:
 
-4. **Shell Script (optional)**
+* `team_mapping.json` (only if you run `build_team_map.py`)
+* `arbitrage_opportunities.csv` (every run of main2)
+
+### 2) Shell Script & Cron
+
+1. **Make it executable**
 
    ```bash
    chmod +x run_arbitrage.sh
-   ./run_arbitrage.sh
    ```
+2. **Add to crontab**
 
-5. **Orchestrate with Dagster**
+   ```cron
+   # Run at minute 0 every hour:
+   0 * * * * /full/path/to/Arbitrage_Detector_Bookmaker/run_arbitrage.sh >> /full/path/to/cron_log.txt 2>&1
+   ```
+3. **Check logs** in `cron_log.txt` and CSV outputs.
+
+### 3) Launchd (macOS)
+
+Create `~/Library/LaunchAgents/com.arbitrage.plist` referencing `run_arbitrage.sh`, then:
+
+```bash
+launchctl load ~/Library/LaunchAgents/com.arbitrage.plist
+```
+
+---
+
+## Optional Orchestration: Dagster
+
+1. **Set up home directory**
 
    ```bash
    export DAGSTER_HOME=~/dagster_home
    mkdir -p "$DAGSTER_HOME"
-   dagster dev -f pipeline.py
    ```
-
-   * Visit [http://127.0.0.1:3000](http://127.0.0.1:3000)
-   * Launch **arbitrage\_job** or enable **hourly\_arbitrage\_schedule**
-
-6. **Interactive UI (Streamlit)**
+2. **Run Dagster**
 
    ```bash
-   pip install streamlit
-   streamlit run dashboard.py
+   dagster dev -f pipeline.py
    ```
+3. **Open UI** at [http://127.0.0.1:3000](http://127.0.0.1:3000)
+4. **Launch** `arbitrage_job` or toggle `hourly_arbitrage_schedule`
 
 ---
 
-## Extending & Scaling
+## Optional Dashboard: Streamlit
 
-* Add new markets (Over/Under, handicaps)
-* Integrate Slack/email/webhook notifications
-* Persist historical snapshots for back‑testing
+```bash
+pip install streamlit
+streamlit run dashboard.py
+```
+
+Use the sidebar to adjust stake, profit thresholds, and refresh live data.
 
 ---
 
-*Happy arbitraging!*
+## Contributing & Extending
+
+* **Add new bookmakers**: implement additional scraper modules under `Scrapers/`
+* **New markets**: over/under, handicaps, 1.5 goal lines, etc.
+* **Notifications**: integrate Slack/webhook or email alerts in `run_arbitrage.sh`
+* **Historical analysis**: store snapshots in a database for backtesting
+
+---
+
+*Enjoy exploring arbitrage across bookmakers!*
+
 
 
 
