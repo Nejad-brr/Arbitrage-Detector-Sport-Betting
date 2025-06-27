@@ -104,4 +104,3 @@ Arbitrage_Detector_Bookmaker/
 
 ---
 
-*Happy arbitraging!*
