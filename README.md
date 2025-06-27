@@ -1,124 +1,110 @@
-Automated Sports Betting Arbitrage Detector
+# Automated Sports Betting Arbitrage Detector
 
-A full-stack Python project to scrape real-time odds from Unibet, Zébet, and Betclic, normalize team names, detect arbitrage opportunities, and orchestrate the end-to-end pipeline with Dagster.
+Full‑stack Python project to:
 
-Features
+1. Scrape real‑time 1X2 odds from Unibet, Zébet, and Betclic
+2. Normalize & canonicalize team names across sources
+3. Detect arbitrage (“sure‑bet”) opportunities via implied probability math
+4. Orchestrate and schedule the pipeline with Dagster
 
-Multi-site scraping: Selenium & BeautifulSoup to extract 1X2 odds.
+---
 
-Data normalization: unidecode + regex + RapidFuzz fuzzy matching for consistent team names.
+## Features
 
-Arbitrage detection: Pandas-driven implied probability calculations, stake allocation, and CSV export.
+* **Multi‑site Scraping**: Headless Selenium + BeautifulSoup to extract odds
+* **Data Normalization**: `unidecode`, regex, and RapidFuzz fuzzy matching
+* **Arbitrage Logic**: Pandas for implied probabilities, filtering, stake allocation
+* **Workflow Orchestration**: Dagster `ops` + `job` + `schedule` for hourly runs with retries, logs, and UI monitoring
+* **Automation Options**: Manual via `run_arbitrage.sh` or hands‑off via Dagster schedules
+* **Interactive Dashboard**: (Optional) Streamlit app for filtering, CSV download, and live view
 
-Workflow orchestration: Dagster ops, job, and schedule for UI-based monitoring, retry logic, and hourly execution.
+---
 
-Automation: Optionally run on-demand via shell script or hands-off via Dagster schedules.
+## Repo Layout
 
-Optional dashboard: Streamlit integration for interactive filtering, CSV download, and live monitoring.
-
-Repository Structure
-
+```
 Arbitrage_Detector_Bookmaker/
-├── Scrapers/                    # Individual scraper modules
-│   ├── betclic_scraper.py      
-│   ├── unibet_scraper.py       
-│   └── zebet_scraper.py        
-├── Arbitrage/                   # Core arbitrage logic
-│   └── main2.py
-├── build_team_map.py            # Generates team_mapping.json
-├── pipeline.py                  # Dagster orchestration definition
-├── run_arbitrage.sh             # Shell script to run pipeline manually
-├── team_mapping.json            # Auto-generated mapping of normalized→canonical names
-├── requirements.txt             # Python dependencies
-└── README.md                    # This file
+├── Scrapers/                # site‑specific scraping modules
+│   ├── betclic_scraper.py   # → get_betclic_df()
+│   ├── unibet_scraper.py    # → get_unibet_df()
+│   └── zebet_scraper.py     # → get_zebet_df()
 
-Setup
+├── Arbitrage/               # core arbitrage logic
+│   └── main2.py             # pipeline: load, normalize, merge, detect, export
 
-Clone the repo
+├── build_team_map.py        # fuzzy clustering to generate team_mapping.json
+├── pipeline.py              # Dagster definitions: ops, job, schedule
+├── run_arbitrage.sh         # shell wrapper to run the full pipeline
+├── team_mapping.json        # auto‑generated normalized→canonical map
+├── requirements.txt         # project dependencies
+└── README.md                # this file
+```
 
-git clone https://github.com/Nejad-brr/Arbitrage-Detector-Sport-Betting.git
-cd Arbitrage-Detector-Sport-Betting
+---
 
-Create & activate virtual environment
+## Quick Start
 
-python3 -m venv .venv
-source .venv/bin/activate
+1. **Clone & Prep**
 
-Install dependencies
+   ```bash
+   git clone https://github.com/Nejad-brr/Arbitrage-Detector-Sport-Betting.git
+   cd Arbitrage-Detector-Sport-Betting
+   python3 -m venv .venv && source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
 
-pip install -r requirements.txt
+2. **Generate Team Map**
 
-Usage
+   ```bash
+   python build_team_map.py
+   ```
 
-1. Generate team mapping
+   This reads `*_odds.csv` and writes `team_mapping.json`.
 
-Run each scraper once to produce *_odds.csv in the project root, then:
+3. **Run Detection**
 
-python build_team_map.py
+   ```bash
+   python -m Arbitrage.main2
+   ```
 
-Creates team_mapping.json for canonical team names.
+   Outputs `arbitrage_opportunities.csv` and console summary.
 
-2. Run arbitrage detection manually
+4. **Shell Script (optional)**
 
-python -m Arbitrage.main2
+   ```bash
+   chmod +x run_arbitrage.sh
+   ./run_arbitrage.sh
+   ```
 
-Outputs arbitrage_opportunities.csv
+5. **Orchestrate with Dagster**
 
-Prints detected opportunities to console
+   ```bash
+   export DAGSTER_HOME=~/dagster_home
+   mkdir -p "$DAGSTER_HOME"
+   dagster dev -f pipeline.py
+   ```
 
-3. Run via Shell Script
+   * Visit [http://127.0.0.1:3000](http://127.0.0.1:3000)
+   * Launch **arbitrage\_job** or enable **hourly\_arbitrage\_schedule**
 
-chmod +x run_arbitrage.sh
-./run_arbitrage.sh
+6. **Interactive UI (Streamlit)**
 
-4. Orchestrate with Dagster
+   ```bash
+   pip install streamlit
+   streamlit run dashboard.py
+   ```
 
-Set DAGSTER_HOME
+---
 
-mkdir -p ~/dagster_home
-export DAGSTER_HOME=~/dagster_home
+## Extending & Scaling
 
-Launch UI & daemon
+* Add new markets (Over/Under, handicaps)
+* Integrate Slack/email/webhook notifications
+* Persist historical snapshots for back‑testing
 
-dagster dev -f pipeline.py
+---
 
-Open http://127.0.0.1:3000 in your browser.
+*Happy arbitraging!*
 
-Launch arbitrage_job manually or enable hourly_arbitrage_schedule for automatic runs.
-
-5. Optional: Interactive Dashboard (Streamlit)
-
-Install
-
-pip install streamlit
-
-Run
-
-streamlit run dashboard.py
-
-Use the sidebar to set your stake and profit threshold, then click Refresh.
-
-Git Workflow
-
-Create a feature branch
-
-git checkout -b main2
-
-Stage & commit
-
-git add .
-git commit -m "feat: add Dagster pipeline and update README"
-
-Push
-
-git push -u origin main2
-
-Extending the Project
-
-Add support for additional markets (Over/Under, handicaps)
-
-Integrate notifications (Slack, email) on profitable arbitrages
-
-Store historical snapshots for back-testing
 
 
